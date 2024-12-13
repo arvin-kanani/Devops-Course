@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 1384
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: arvin
+      MYSQL_PASSWORD: 1384
+    ports:
+      - "3306:3306"
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "5050:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: arvin
+      WORDPRESS_DB_PASSWORD: 1384
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - "/mnt/backup:/var/www/html"
+    depends_on:
+      - db
+      - phpmyadmin
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        failure_action: rollback
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  phpmyadmin:
+   image: phpmyadmin:latest
+   deploy:
+     replicas: 1
+     update_config:
+       failure_action: rollback
+     restart_policy:
+       condition: on-failure
+   ports:
+     - "8080:80"
+   depends_on:
+     - db
+   environment:
+     PMA_HOST: db:3306
+     PMA_USER: arvin
+     PMA_PASSWORD: 1384
+
